@@ -6,6 +6,7 @@ import com.sky.entity.Dish;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.DishService;
+import com.sky.vo.DishVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -64,4 +65,37 @@ public class DishController {
         dishService.deleteBatch(ids);
         return Result.success();
     }
+
+    @ApiOperation("根据ID查询")
+    @GetMapping("/{id}")
+    public Result<DishVO>  getById(@PathVariable Long id){
+        log.info("根据ID查询菜品的相关信息，ID为 ：{}",id);
+        DishVO dishVo = dishService.getByIdWithFlavor(id);
+        return Result.success(dishVo);
+    }
+
+    @ApiOperation("更新相关信息")
+    @PutMapping
+    public Result update(@RequestBody DishDTO dishDTO){
+        log.info("更新菜品相关信息：{}",dishDTO);
+        dishService.updateWithFlavor(dishDTO);
+        return Result.success();
+    }
+
+    @PostMapping("/status/{status}")
+    @ApiOperation("启用禁用菜品")
+    public Result<String> startOrStop(@PathVariable("status") Integer status, Long id){
+        log.info("启用禁用菜品");
+        dishService.startOrStop(status,id);
+        return Result.success();
+    }
+
+    @GetMapping("/list")
+    @ApiOperation("根据分类的ID查询菜品")
+    public Result<List<Dish>> list(Long categoryId){
+        log.info("根据分类的ID查询菜品 ID为：{}",categoryId);
+        List<Dish> dishLists = dishService.list(categoryId);
+        return Result.success(dishLists);
+    }
+
 }

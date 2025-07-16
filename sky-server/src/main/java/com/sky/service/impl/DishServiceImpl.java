@@ -6,6 +6,7 @@ import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
+import com.sky.entity.Category;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
 import com.sky.entity.Employee;
@@ -37,10 +38,9 @@ public class DishServiceImpl implements DishService {
     private DishFlavorMapper dishFlavorMapper;
     @Autowired
     private SetmealDishMapper setmealDishMapper;
+
     /**
-     *
-     * @param dishDTO
-     * 由於操作了多个数据表 因此为了保证数据的原子性 需要使用事物注解
+     * @param dishDTO 由於操作了多个数据表 因此为了保证数据的原子性 需要使用事物注解
      */
     @Override
     @Transactional
@@ -65,15 +65,16 @@ public class DishServiceImpl implements DishService {
 
     @Override
     public PageResult pageQuery(DishPageQueryDTO dishPageQueryDTO) {
-        PageHelper.startPage(dishPageQueryDTO.getPage(),dishPageQueryDTO.getPageSize());
+        PageHelper.startPage(dishPageQueryDTO.getPage(), dishPageQueryDTO.getPageSize());
         Page<DishVO> page = dishMapper.pageQuery(dishPageQueryDTO);
         long total = page.getTotal();
         List<DishVO> result = page.getResult();
-        return new PageResult(total,result);
+        return new PageResult(total, result);
     }
 
     /**
      * 批量删除功能
+     *
      * @param ids
      */
     @Transactional
@@ -83,26 +84,89 @@ public class DishServiceImpl implements DishService {
         for (Long id : ids) {
             Dish dish = dishMapper.getById(id);
             // 如果当前菜品的状态为1 代表正常可以用 代表商品数据起售中 不能进行删除
-            if (Objects.equals(dish.getStatus(), StatusConstant.ENABLE)){
+            if (Objects.equals(dish.getStatus(), StatusConstant.ENABLE)) {
                 throw new DeletionNotAllowedException(MessageConstant.DISH_ON_SALE);
             }
         }
         // 当前菜品被某个套餐关联 关联了不可以删除）
-        List<Long> setmealIds =  setmealDishMapper.getSetmealIdsByDishIds(ids);
+        List<Long> setmealIds = setmealDishMapper.getSetmealIdsByDishIds(ids);
         // 查出来的是存在套餐关联的情况
-        if (setmealIds != null && setmealIds.size()> 0){
+        if (setmealIds != null && setmealIds.size() > 0) {
             // 菜品被关联了
             throw new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
         }
 
         // 删除菜品表中的菜品数据
         // 删除菜品关联的口味数据
-        for (Long id : ids) {
-            dishMapper.deleteById(id);
-            dishFlavorMapper.deteteByDishId(id);
+//        for (Long id : ids) {
+//            dishMapper.deleteById(id);
+//            dishFlavorMapper.deteteByDishId(id);
+//        }
+        // 改进 修改成批量删除
+        dishMapper.deleteByIds(ids);
+        dishFlavorMapper.deteteByDishIds(ids);
+    }
+
+    /**
+     * 根据ID查询菜品和对应的口味数据
+     * @param id
+     * @return
+     */
+    @Override
+    public DishVO getByIdWithFlavor(Long id) {
+        // 1.查询菜品表
+        Dish dish = dishMapper.getById(id);
+        // 2.查询口味数据
+        List<DishFlavor> dishFlavors =   dishFlavorMapper.getByDishId(id);
+        DishVO dishVO = new DishVO();
+        BeanUtils.copyProperties(dish,dishVO);
+        dishVO.setFlavors(dishFlavors);
+        return dishVO;
+    }
+
+    /**
+     * 根据菜品修改基本信息和口味信息
+     * @param dishDTO
+     */
+    @Override
+    public void updateWithFlavor(DishDTO dishDTO) {
+        Dish dish = new Dish();
+        // 利用BeanUtils的属性拷贝
+        BeanUtils.copyProperties(dishDTO, dish);
+        // 1. 修改基本信息
+        dishMapper.update(dish);
+
+        // 2. 修改口味信息
+        // 2.1 删除原有的口味数据
+        Long dishId = dishDTO.getId();
+        dishFlavorMapper.deteteByDishId(dishId);
+        // 2.2 重新插入口味数据
+        List<DishFlavor> flavors = dishDTO.getFlavors();
+        if (flavors != null && flavors.size() > 0) {
+            flavors.forEach(dishFlavor -> {
+                dishFlavor.setDishId(dishId);
+            });
+            // 向口味表添加若干条数据
+            dishFlavorMapper.insertBatch(flavors);
         }
+    }
 
-
-
+    @Override
+    public void startOrStop(Integer status, Long id) {
+        Dish dish = Dish.builder()
+                .id(id)
+                .status(status)
+                .build();
+        dishMapper.update(dish);
+    }
+    /**
+     * 根据类别ID查询所有的菜品
+     * @param categoryId
+     * @return list结合 代表的是该类别的所有菜品
+     */
+    @Override
+    public List<Dish> list(Long categoryId) {
+        Dish dish = Dish.builder().categoryId(categoryId).status(StatusConstant.ENABLE).build();
+        return dishMapper.list(dish);
     }
 }

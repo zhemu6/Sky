@@ -31,4 +31,14 @@ public interface DishFlavorMapper {
      */
     @Delete("delete from dish_flavor where dish_id = #{dishId}")
     void deteteByDishId(Long dishId);
+
+    void deteteByDishIds(List<Long> dishIds);
+
+    /**
+     * 根据菜品的ID查询口味表
+     * @param dishId 菜品ID
+     * @return 返回菜品提供的口味表
+     */
+    @Select("select * from dish_flavor where dish_id = #{dishId}")
+    List<DishFlavor> getByDishId(Long dishId);
 }

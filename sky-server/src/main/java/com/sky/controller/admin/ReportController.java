@@ -15,6 +15,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -93,6 +94,14 @@ public class ReportController {
         log.info("销量排名前十统计，日期为{}~{}",begin,end);
         SalesTop10ReportVO salesTop10ReportVO = reportService.getSalesTop10(begin,end);
         return Result.success(salesTop10ReportVO);
+    }
+
+    @GetMapping("/export")
+    @ApiOperation("报表导出功能")
+    public Result export(HttpServletResponse response){
+        log.info("报表导出功能");
+        reportService.export(response);
+        return Result.success();
     }
 
 

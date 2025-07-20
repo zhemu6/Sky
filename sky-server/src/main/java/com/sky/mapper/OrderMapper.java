@@ -53,7 +53,7 @@ public interface OrderMapper {
      */
     Double sumByMap(Map map);
 
-    Integer sumOrderByMap(Map<String, Object> map);
+    Integer countOrderByMap(Map<String, Object> map);
 
     /**
      *

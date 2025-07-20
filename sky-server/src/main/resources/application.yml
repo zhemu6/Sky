@@ -43,8 +43,31 @@ sky:
     admin-ttl: 7200000
     # 设置前端传递过来的令牌名称
     admin-token-name: token
+
+    # 设置用户端jwt签名加密时使用的秘钥
+    user-secret-key: itcast
+    # 设置用户端jwt过期时间
+    user-ttl: 7200000
+    # 设置用户端传递过来的令牌名称
+    user-token-name: authentication
+  shop:
+    address: 黑龙江省哈尔滨市香坊区长江路600号
+  baidu:
+    ak: BA81dP5j1Mh78kPzAmyyGsafjorFzRgz
+
+
   alioss:
     endpoint:  ${sky.alioss.endpoint}
     access-key-id: ${sky.alioss.access-key-id}
     access-key-secret: ${sky.alioss.access-key-secret}
     bucket-name: ${sky.alioss.bucket-name}
+  wechat:
+    appid: ${sky.wechat.appid}
+    secret: ${sky.wechat.secret}
+    mchid: ${sky.wechat.mchid}
+    mchSerialNo: ${sky.wechat.mchSerialNo}
+    privateKeyFilePath: ${sky.wechat.privateKeyFilePath}
+    apiV3Key: ${sky.wechat.apiV3Key}
+    weChatPayCertFilePath: ${sky.wechat.weChatPayCertFilePath}
+    notifyUrl: ${sky.wechat.notifyUrl}
+    refundNotifyUrl: ${sky.wechat.refundNotifyUrl}

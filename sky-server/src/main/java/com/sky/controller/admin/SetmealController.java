@@ -13,6 +13,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,7 +24,7 @@ import java.util.List;
  * 套餐相关控制层代码
  * create:   2025-07-16   16:58
  */
-@RestController
+@RestController("adminSetmealController")
 @RequestMapping("/admin/setmeal")
 @Slf4j
 @Api(tags = "套餐相关接口")
@@ -31,6 +32,7 @@ public class SetmealController {
     @Autowired
     private SetmealService setmealService;
 
+    @CacheEvict(cacheNames = "setmealCache",key = "#setmealDTO.categoryId")
     @PostMapping
     public Result save(@RequestBody SetmealDTO setmealDTO){
         log.info("新增套餐：{}",setmealDTO);
@@ -50,6 +52,7 @@ public class SetmealController {
      * @param ids 需要删除的套餐的id
      * @return
      */
+    @CacheEvict(cacheNames = "setmealCache",allEntries = true)
     @ApiOperation("批量删套餐")
     @DeleteMapping
     public Result  delete(@RequestParam List<Long> ids){
@@ -73,6 +76,7 @@ public class SetmealController {
 
     @ApiOperation("更新相关信息")
     @PutMapping
+    @CacheEvict(cacheNames = "setmealCache",allEntries = true)
     public Result update(@RequestBody SetmealDTO setmealDTO){
         log.info("更新套餐相关信息：{}",setmealDTO);
         setmealService.updateWithDish(setmealDTO);
@@ -81,6 +85,7 @@ public class SetmealController {
 
     @PostMapping("/status/{status}")
     @ApiOperation("启用禁用套餐")
+    @CacheEvict(cacheNames = "setmealCache",allEntries = true)
     public Result<String> startOrStop(@PathVariable("status") Integer status, Long id){
         log.info("启用禁用套餐");
         setmealService.startOrStop(status,id);

@@ -138,18 +138,13 @@ public class WeChatPayUtil {
         jsonObject.put("description", description);
         jsonObject.put("out_trade_no", orderNum);
         jsonObject.put("notify_url", weChatProperties.getNotifyUrl());
-
         JSONObject amount = new JSONObject();
         amount.put("total", total.multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP).intValue());
         amount.put("currency", "CNY");
-
         jsonObject.put("amount", amount);
-
         JSONObject payer = new JSONObject();
         payer.put("openid", openid);
-
         jsonObject.put("payer", payer);
-
         String body = jsonObject.toJSONString();
         return post(JSAPI, body);
     }
